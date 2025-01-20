@@ -45,7 +45,7 @@ export default {
         { label: "Shopping Cart" },
         { label: "Popular Categories" },
         { label: "Register" },
-        { label: "Component 9" },
+        { label: "Showroom" },
         { label: "Component 10"},
       ],
       components: [
