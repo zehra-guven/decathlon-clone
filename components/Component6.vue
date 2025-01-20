@@ -22,7 +22,7 @@
         </div>
         <div class="cart-content">
           <div class="empty-cart">
-            <img src="@/assets/empty-cart.svg" alt="Empty Cart" />
+            <img src="/assets/empty-cart.svg" alt="Empty Cart" />
             <p>Sepetiniz boş</p>
             <button @click="continueShopping">Alışverişe Devam Et</button>
           </div>
