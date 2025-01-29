@@ -8,24 +8,16 @@
         <img src="/assets/Decathlon_Logo.svg" alt="Decathlon Logo" />
       </div>
       <h2>Oturum Aç</h2>
-      <form @submit.prevent="submitForm">
+      <form @submit.prevent="handleLogin">
         <label for="email">Eposta</label>
-        <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="E-posta"
-          required
-        />
+        <input type="email" id="email" v-model="email" placeholder="E-posta" required />
+        <label for="password">Şifre</label>
+        <input type="password" id="password" v-model="password" placeholder="Şifre" required />
         <button type="submit" class="submit-btn">İLERİ</button>
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       </form>
-      <div class="social-login">
-        <p>veya</p>
-        <button class="social-btn google">Google ile Giriş Yap</button>
-        <button class="social-btn facebook">Facebook ile Giriş Yap</button>
-      </div>
       <p>
-        Decathlon hesabınız yok mu? <a href="#">Hemen oluşturun!</a>
+        Decathlon hesabınız yok mu? <a href="#" @click="goToRegister">Hemen oluşturun!</a>
       </p>
       <div class="features">
         <p>Giriş yapmanız tavsiye edilir</p>
@@ -46,23 +38,42 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { ref } from "vue";
+import { auth } from "@/firebaseConfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-export default defineComponent({
+export default {
   name: "LoginForm",
   setup() {
     const email = ref("");
+    const password = ref("");
+    const errorMessage = ref("");
 
-    const submitForm = () => {
-      alert(`Giriş yapmak için: ${email.value}`);
+    const goToRegister = () => {
+      window.location.href = "/register";  // Register sayfasına yönlendirme
+    };
+
+    const handleLogin = async () => {
+      try {
+        await signInWithEmailAndPassword(auth, email.value, password.value);
+        // Başarılı giriş sonrası yönlendirme
+        window.location.href = "/"; 
+      } catch (error: any) {
+        errorMessage.value = "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.";
+        console.error("Login error:", error.message);
+      }
     };
 
     return {
       email,
-      submitForm,
+      password,
+      errorMessage,
+      handleLogin,
+
+      goToRegister,
     };
   },
-});
+};
 </script>
 
 <style scoped>
@@ -151,11 +162,6 @@ input {
   color: white;
 }
 
-.facebook {
-  background-color: #3b5998;
-  color: white;
-}
-
 .features {
   margin-top: 20px;
 }
@@ -181,5 +187,11 @@ input {
 .language-selector img {
   width: 20px;
   margin-right: 5px;
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
 }
 </style>
