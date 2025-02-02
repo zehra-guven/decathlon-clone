@@ -23,11 +23,35 @@
         <ul class="links">
           <li class="hover"><a href="#"><img src="/assets/question.svg" alt="Question Icon" class="icon" /><span>Bize Ulaşın</span></a></li>
           <li class="hover"><a href="#"><img src="/assets/market.svg" alt="Market Icon" class="icon" /><span>Mağaza Bul</span></a></li>
-          <li class="hover" @click="goToAccount"><a href="#"><img src="/assets/user.svg" alt="User Icon" class="icon" /><span>{{ user ? 'Çıkış Yap' : 'Hesabım' }}</span></a></li>
-          <li class="hover"><a href="#"><img src="/assets/cart.svg" alt="Cart Icon" class="icon" /><span>Sepetim</span></a></li>
+          <li class="hover">
+            <a href="#" @click="goToLogin" v-if="!user">
+              <img src="/assets/user.svg" alt="User Icon" class="icon" />
+              <span>Hesabım</span>
+            </a>
+            <a href="#" v-else @click="logout">
+              <img src="/assets/user.svg" alt="User Icon" class="icon" />
+              <span>Çıkış Yap</span>
+            </a>
+          </li>
+          <li class="hover"><a href="/cart"><img src="/assets/cart.svg" alt="Cart Icon" class="icon" /><span>Sepetim</span></a></li>
         </ul>
       </div>
     </div>
+
+    <!-- Alt Menü (Dropdown) -->
+    <nav class="nav-menu">
+      <ul class="menu-links">
+        <li @click="openCategoryMenu"><a href="#"><b>Sporlar</b></a></li>
+        <li><a href="#">Kadın</a></li>
+        <li><a href="#">Erkek</a></li>
+        <li><a href="#">Çocuk</a></li>
+        <li><a href="#">Aksesuarlar</a></li>
+        <li><a href="#">Ekipmanlar</a></li>
+        <li><a href="#">Tüm Ürünler</a></li>
+        <li class="hover"><a href="#">Sporcu Besinleri</a></li>
+        <li class="hover"><a href="#">Decathlon Member</a></li>
+      </ul>
+    </nav>
 
     <!-- SidebarMenu Component -->
     <SidebarMenu :isOpen="menuOpen" @close="menuOpen = false" />
@@ -38,10 +62,9 @@
 </template>
 
 <script>
-import { getAuth, signOut } from "firebase/auth";
 import SidebarMenu from "@/components/SidebarMenu.vue";
 import DetailedCategory from "@/components/DetailedCategory.vue";
-import { auth } from "@/firebaseConfig"; // Firebase config dosyanızdan auth'ı import edin
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 export default {
   name: "HeaderComponent",
@@ -52,46 +75,43 @@ export default {
   data() {
     return {
       menuOpen: false,
-      categoryMenuOpen: false, // Manage the visibility of DetailedCategory
-      user: null, // Kullanıcı verisini burada tutacağız
+      categoryMenuOpen: false,
+      user: null, // Kullanıcı bilgisi
     };
   },
-  created() {
-    // Firebase Authentication ile giriş yapan kullanıcıyı takip et
-    this.checkUserAuth();
-  },
   methods: {
-    // Kullanıcı oturum durumunu kontrol et
-    checkUserAuth() {
-      const unsubscribe = auth.onAuthStateChanged(user => {
-        this.user = user;
-        unsubscribe(); // Bu dinleyiciyi yalnızca bir kez çalıştırmak için unsubscribe et
-      });
-    },
-
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
     },
     openCategoryMenu() {
-      this.categoryMenuOpen = !this.categoryMenuOpen; // Toggle the visibility of DetailedCategory
+      this.categoryMenuOpen = !this.categoryMenuOpen;
     },
-    goToAccount() {
-      if (this.user) {
-        // Çıkış yap
-        signOut(auth).then(() => {
-          this.$router.push('/logout'); // Çıkış yaptıktan sonra logout sayfasına yönlendir
-        }).catch((error) => {
-          console.error("Çıkış yaparken hata oluştu:", error);
-        });
-      } else {
-        // Kullanıcı giriş yapmadıysa login sayfasına yönlendir
-        this.$router.push('/login');
+    logout() {
+      const auth = getAuth();
+      if (confirm("Çıkış yapmak istediğinize emin misiniz?")) {
+        signOut(auth)
+          .then(() => {
+            alert("Başarıyla çıkış yapıldı.");
+            this.user = null; // Kullanıcıyı sıfırla
+          })
+          .catch((error) => {
+            console.error("Çıkış yapılamadı: ", error);
+          });
       }
-    }
+    },
+    goToLogin() {
+    // Redirect to the login page using window.location.href
+    window.location.href = '/login'; // Login sayfasına yönlendirme
+  }
+  },
+  mounted() {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      this.user = user; // Kullanıcı oturum açmışsa güncelle
+    });
   },
 };
 </script>
-
 
 <style scoped>
 .header {

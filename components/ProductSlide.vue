@@ -1,3 +1,5 @@
+<!--ProductSlide.vue src/components/ProductSlide.vue-->
+
 <template>
   <div class="product-carousel">
     <div class="carousel-products">
@@ -25,6 +27,7 @@
         >
           {{ product.label }}
         </span>
+        <button class="add-to-cart" @click="addToCart(product)">Sepete Ekle</button>
       </div>
     </div>
 
@@ -44,16 +47,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import urun1 from "assets/urun1.png";
-import urun2 from "assets/urun2.png";
-import urun3 from "assets/urun3.png";
-import urun4 from "assets/urun4.png";
-import urun5 from "assets/urun5.png";
-import urun6 from "assets/urun6.png";
-import urun7 from "assets/urun7.png";
-import urun8 from "assets/urun8.png";
+import { ref, computed, defineEmits, onMounted } from "vue";
+import { collection, getDocs, query, limit, addDoc } from "firebase/firestore"; // addDoc burada import edilmiştir
+import { db } from "@/firebaseConfig";
+import { useCartStore } from "~/store/cart";
+// Firebase Firestore Bağlantısı
+const cartStore = useCartStore();
 
+// Ürün Arayüzü
 interface Product {
   title: string;
   image: string;
@@ -66,131 +67,78 @@ interface Product {
   discountedPrice: number;
 }
 
-const products = ref<Product[]>([
-  {
-    title: "Çocuk Su Geçirmez Outdoor Kar Botu",
-    image: urun1,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Yetişkin Termal Üst İçlik",
-    image: urun2,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Erkek Su Geçirmez Outdoor Kar Montu",
-    image: urun3,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Erkek Su Geçirmez Outdoor Kar Botu",
-    image: urun4,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Kadın Termal Üst İçlik",
-    image: urun5,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Çocuk Outdoor Ayakkabı",
-    image: urun6,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Kadın Kar Montu",
-    image: urun7,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-  {
-    title: "Unisex Su Geçirmez Bot",
-    image: urun8,
-    price: 3950,
-    discount: 22,
-    label: "İNDİRİM",
-    labelColor: "red-label",
-    rating: 5,
-    reviews: 710,
-    discountedPrice: 3950 - (3950 * 22) / 100,
-  },
-]);
+// Başlangıçta boş bir ürün dizisi
+const products = ref<Product[]>([]);
 
-const currentIndex = ref(0);
-const itemsPerSlide = 4;
+// Firebase'den ürünleri çekme fonksiyonu
+const fetchProducts = async () => {
+  try {
+    const querySnapshot = await getDocs(
+      query(collection(db, "products"), limit(10)) // Sadece 10 ürün al
+    );
+    const fetchedProducts = querySnapshot.docs.map(doc => doc.data() as Product); // Veriyi al
+    products.value = fetchedProducts; // products dizisini güncelle
+  } catch (error) {
+    console.error("Error fetching products:", error);
+  }
+};
 
+// component mount olduğunda veriyi çek
+onMounted(() => {
+  fetchProducts();
+});
+
+const emit = defineEmits(["addToCart"]);
+
+// Sepete ürün ekleme işlemi
+const addToCart = async (product: Product) => {
+  try {
+    // Sepete ürün ekle
+    await addDoc(collection(db, "cart"), product); // Firestore'a yeni belge ekle
+    alert("Ürün sepete eklendi!");
+  } catch (error) {
+    console.error("Ürün sepete eklenirken hata oluştu:", error);
+  }
+  emit("addToCart", product);
+};
+
+// Sayfa yönetimi
+const currentIndex = ref(0); // Başlangıçta ilk sayfa
+const itemsPerSlide = 4; // Kaç ürün gösterilecek
+
+// Toplam kaç sayfa olacağını hesapla
+const totalPages = computed(() => Math.ceil(products.value.length / itemsPerSlide));
+
+// Görünen ürünleri hesapla
 const visibleProducts = computed(() => {
-  return products.value.slice(currentIndex.value, currentIndex.value + itemsPerSlide);
+  return products.value.slice(currentIndex.value * itemsPerSlide, (currentIndex.value + 1) * itemsPerSlide);
 });
 
-const nextSlide = () => {
-  currentIndex.value++;
-  if (currentIndex.value > products.value.length - itemsPerSlide) {
-    currentIndex.value = 0; // Baştan başlat
-  }
-};
-
+// Önceki slayda git
 const prevSlide = () => {
-  currentIndex.value--;
-  if (currentIndex.value < 0) {
-    currentIndex.value = products.value.length - itemsPerSlide; // Sona sar
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+  } else {
+    currentIndex.value = totalPages.value - 1; // En son slayda git
   }
 };
 
-const totalPages = computed(() =>
-  Math.max(1, products.value.length - itemsPerSlide + 1)
-);
-
-const goToSlide = (pageIndex: number) => {
-  currentIndex.value = pageIndex * itemsPerSlide;
+// Sonraki slayda git
+const nextSlide = () => {
+  if (currentIndex.value < totalPages.value - 1) {
+    currentIndex.value++;
+  } else {
+    currentIndex.value = 0; // Başa dön
+  }
 };
 
-const translateX = computed(() => {
-  return `translateX(-${(currentIndex.value / products.value.length) * 100}%)`;
-});
-
+// Belirli bir slayda git
+const goToSlide = (index: number) => {
+  currentIndex.value = index;
+};
 </script>
+
+
 
 <style scoped>
 .product-carousel {
@@ -270,5 +218,19 @@ const translateX = computed(() => {
 button {
   padding: 5px 10px;
   cursor: pointer;
+}
+
+.add-to-cart {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 1rem;
+}
+.add-to-cart:hover {
+  background-color: #0056b3;
 }
 </style>

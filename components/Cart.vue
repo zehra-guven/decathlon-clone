@@ -2,7 +2,7 @@
   <div class="shopping-cart">
     <!-- Üst Navigasyon -->
     <div class="navigation">
-      <a href="#" class="back-link">ALIŞVERİŞE DEVAM ET</a>
+      <a href="/" @onclick="goToMain" class="back-link">ALIŞVERİŞE DEVAM ET</a>
     </div>
 
     <!-- Adım İlerleme -->
@@ -21,10 +21,25 @@
           <h2>Sepetim</h2>
         </div>
         <div class="cart-content">
-          <div class="empty-cart">
+          <div v-if="cartProducts.length === 0" class="empty-cart">
             <img src="/assets/empty-cart.svg" alt="Empty Cart" />
             <p>Sepetiniz boş</p>
-            <button @click="continueShopping">Alışverişe Devam Et</button>
+            <button @click="goToMain">Alışverişe Devam Et</button>
+          </div>
+          <div v-else>
+            <div v-for="product in cartProducts" :key="product.id" class="cart-item">
+              <img :src="product.image" :alt="product.title" class="cart-item-image" />
+              <div class="cart-item-details">
+                <h3>{{ product.title }}</h3>
+                <p>{{ (product.discountedPrice * product.quantity).toLocaleString() }}₺</p>
+                <div class="quantity-controls">
+                  <button @click="decreaseQuantity(product)">-</button>
+                  <span>{{ product.quantity }}</span>
+                  <button @click="increaseQuantity(product)">+</button>
+                </div>
+                <button @click="removeProductFromCart(product.id)" class="remove-button">Sil</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -34,16 +49,16 @@
         <h3>Sipariş özeti</h3>
         <div class="summary-item">
           <span>Ara toplam</span>
-          <span>₺0</span>
+          <span>₺{{ totalPrice.toLocaleString() }}</span>
         </div>
         <div class="summary-item">
           <span>Kargo bir sonraki adımda hesaplanacak</span>
         </div>
         <div class="summary-total">
           <span>Toplam (KDV dahil)</span>
-          <span>₺0</span>
+          <span>₺{{ totalPrice.toLocaleString() }}</span>
         </div>
-        <button class="confirm-button" disabled>SEPETİ ONAYLA</button>
+        <button class="confirm-button" :enabled="cartProducts.length === 0">SEPETİ ONAYLA</button>
         <div class="coupon-code">
           <span>Kupon Kodu</span>
           <div class="coupon-input">
@@ -57,25 +72,114 @@
 </template>
 
 <script lang="ts">
-export default {
-  name: 'ShoppingCart',
-  data() {
-    return {
-      currentStep: 1, // Şu anki adımı göstermek için
+import { defineComponent, ref, onMounted } from "vue";
+import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc  } from "firebase/firestore"; // Firestore işlemleri için gerekli import
+
+const db = getFirestore(); // Firebase veritabanı bağlantısı
+const cartCollection = collection(db,"cart")
+export default defineComponent({
+  name: "ShoppingCart",
+  setup() {
+    // Sepet ürünlerini tutmak için bir reaktif değişken
+    const cartProducts = ref<any[]>([]);
+
+
+
+// Ürünleri Firestore'dan al
+const fetchCartProducts = async () => {
+  try {
+    const querySnapshot = await getDocs(cartCollection);
+    cartProducts.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching cart products:", error);//debug
+  }
+};
+
+// Sepete ürün ekleme
+const addProductToCart = async (product: any) => {
+  try {
+    await addDoc(cartCollection, { ...product, quantity: 1 });
+    fetchCartProducts();
+  } catch (error) {
+    console.error("Error adding product:", error);
+  }
+};
+
+// Ürün adetini artırma
+const increaseQuantity = async (product: any) => {
+  const productRef = doc(db, "cart", product.id);
+  try {
+    await updateDoc(productRef, { quantity: product.quantity + 1 });
+    fetchCartProducts();
+  } catch (error) {
+    console.error("Error updating quantity:", error);
+  }
+};
+
+// Ürün adetini azaltma
+const decreaseQuantity = async (product: any) => {
+  if (product.quantity > 1) {
+    const productRef = doc(db, "cart", product.id);
+    try {
+      await updateDoc(productRef, { quantity: product.quantity - 1 });
+      fetchCartProducts();
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+    }
+  } else {
+    await removeProductFromCart(product.id);
+  }
+};
+
+const goToMain = () => {
+  window.location.href = "/";  // Main directory or homepage
+};
+
+
+// Sepetten ürünü kaldırma
+const removeProductFromCart = async (id: string) => {
+  const productRef = doc(db, "cart", id);
+  try {
+    await deleteDoc(productRef);
+    fetchCartProducts();
+  } catch (error) {
+    console.error("Error removing product:", error);
+  }
+};
+    // Kupon kodu uygulama işlemi
+    const applyCoupon = () => {
+      console.log("Kupon kodu uygulandı.");
+    };
+
+    // Bileşen yüklendiğinde verileri çek
+    onMounted(() => {
+      fetchCartProducts();
+    });
+
+    // Sepet toplamını hesaplama
+    const totalPrice = computed(() =>
+      cartProducts.value.reduce(
+        (total, product) => total + product.discountedPrice * product.quantity,
+        0
+      )
+    );
+    return { 
+      cartProducts, 
+      totalPrice, 
+      applyCoupon, 
+      currentStep: 1,
+      increaseQuantity,
+      decreaseQuantity, 
+      removeProductFromCart,
+      addProductToCart,
+      goToMain,
     };
   },
-  methods: {
-    continueShopping() {
-      console.log('Alışverişe devam et tıklandı.');
-    },
-    applyCoupon() {
-      console.log('Kupon kodu uygulandı.');
-    },
-  },
-};
+});
 </script>
 
 <style scoped>
+
 .shopping-cart {
   display: flex;
   flex-direction: column;
@@ -217,5 +321,21 @@ export default {
 
 .apply-button:hover {
   background-color: #0056b3;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cart-item-image {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+.cart-item-details {
+  flex: 1;
 }
 </style>

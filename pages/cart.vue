@@ -1,3 +1,5 @@
+<!-- src/pages/cart.vue -->
+
 <template>
     <Cart />
 </template>
