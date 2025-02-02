@@ -17,7 +17,7 @@
     "bootstrap-icons": "^1.11.3",
     "firebase": "^11.2.0",
     "nuxt": "^3.13.2",
-    "pinia": "^2.3.0",
+    "pinia": "^2.3.1",
     "vue": "latest",
     "vue-router": "latest",
     "vuetify-nuxt-module": "^0.18.3",
