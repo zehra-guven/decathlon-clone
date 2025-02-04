@@ -4,7 +4,7 @@ import { ref } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default defineNuxtPlugin((nuxtApp) => {
-  // Global reaktif kullanıcı durumu
+  // GLOBAL reaktif kullanıcı  durumu
   const isLoggedIn = ref(false);
 
   // Kullanıcı oturum durumunu takip et
@@ -17,12 +17,14 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.provide('isLoggedIn', isLoggedIn);
 });
 
+
 declare module '#app' {
   interface NuxtApp {
     $auth: typeof auth;
     $isLoggedIn: boolean;
   }
 }
+
 
 declare module 'vue' {
   interface ComponentCustomProperties {

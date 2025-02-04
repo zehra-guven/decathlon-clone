@@ -2,14 +2,14 @@
 
     <div>
         <Navbar />
-        <div class="empty-space1">supposed to be an element 🤔👀</div>
+        <div class="empty-space1"></div>
         <SlideShow />
-        <div class="empty-space2">supposed to be an element 🤔👀</div>
+        <div class="empty-space2"></div>
         <ProductSlide/>
-        <div class="empty-space3">supposed to be an element 🤔👀</div>
+        <div class="empty-space3"></div>
         <PopularCategories/>
         <Showroom/>
-        <div class="empty-space4">supposed to be an element 🤔👀</div>
+
         <Footer/>
 
     </div>

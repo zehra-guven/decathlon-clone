@@ -74,11 +74,15 @@
     <div class="footer-bottom">
       <div class="social-media">
         <h3>Bizi Takip Et</h3>
+        <div class="flex">
         <a href="#"><img src="assets/facebook.svg" alt="Facebook" /></a>
         <a href="#"><img src="assets/instagram.svg" alt="Instagram" /></a>
         <a href="#"><img src="assets/linkedin.svg" alt="LinkedIn" /></a>
+      </div>
+      <div class="flex">
         <a href="#"><img src="assets/tiktok.svg" alt="TikTok" /></a>
         <a href="#"><img src="assets/youtube.svg" alt="YouTube" /></a>
+      </div>
       </div>
       <div class="mobile-experience">
         <h3>Decathlon Deneyimini Mobile Sürdür</h3>
@@ -107,19 +111,30 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 25px;
-  padding: 50px 0;
+  gap: 15px;
+  padding: 15px 0;
   background-color: #3643ba;
   color: white;
   font-weight: bold;
+  flex-wrap: wrap; /* Küçük ekranlarda taşmayı engeller */
+}
+.footer-item span {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Resim ile yazı arasındaki boşluk */
 }
 
 .footer-top img {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   margin-right: 5px;
 }
-
+.footer-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
 .footer-content {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -135,6 +150,10 @@ export default {
 .footer-column ul {
   list-style: none;
   padding: 0;
+
+
+
+
 }
 
 .footer-column li {
@@ -158,4 +177,10 @@ export default {
   height: 40px;
   margin-right: 10px;
 }
+.flex{
+  display: flex;
+  gap:10px;
+}
+
+
 </style>

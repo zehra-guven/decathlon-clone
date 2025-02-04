@@ -2,7 +2,7 @@
   <header class="header">
     <div class="header-container">
       <!-- Sol Taraf -->
-      <div class="logo-and-menu">
+      <div class= "logo-and-menu" style="margin-left: 10px;">
         <div class="menu-icon-and-text hover" @click="toggleMenu">
           <img src="/assets/menu.svg" alt="Menu Icon" class="menu-icon" />
           <button class="menu-button">Menü</button>
@@ -171,6 +171,7 @@ export default {
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin-left: 20px;
 }
 
 .search-input-container {
