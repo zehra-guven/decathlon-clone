@@ -70,7 +70,7 @@ interface Product {
 // Başlangıçta boş bir ürün dizisi
 const products = ref<Product[]>([]);
 
-// Firebase'den ürünleri çekme fonksiyonu
+// FİREBASE'den ürünleri çekme fonksiyonu
 const fetchProducts = async () => {
   try {
     const querySnapshot = await getDocs(
@@ -90,7 +90,7 @@ onMounted(() => {
 
 const emit = defineEmits(["addToCart"]);
 
-// Sepete ürün ekleme işlemi
+// Sepete ürün ekleme işlemi,Pinia ile 
 const addToCart = async (product: Product) => {
   try {
     // Sepete ürün ekle
@@ -161,8 +161,8 @@ const goToSlide = (index: number) => {
   text-align: center;
 }
 .product-image {
-  max-width: 100%;
-  height: auto;
+height: 300px;
+  width: 250px;
 }
 .product-title {
   font-size: 1.1rem;
